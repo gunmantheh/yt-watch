@@ -41,7 +41,7 @@ def main():
     if config["youtube"] is None:
         print("Youtube has invalid configuration")
         exit(2)
-    if ((config["mpv"] is None) & (config["livestreamer"] is None)):
+    if (config["mpv"] is None and config["livestreamer"] is None):
         print("At least one player has to be setup")
         exit(3)
     win32clipboard.OpenClipboard()
