@@ -44,16 +44,13 @@ def main():
     if (config["mpv"] is None and config["livestreamer"] is None):
         print("At least one player has to be setup")
         exit(3)
-    win32clipboard.OpenClipboard()
-    lastURL = win32clipboard.GetClipboardData()
-    win32clipboard.CloseClipboard()
+    clipboard, lastURL = "", ""
+    clipboard, lastURL = GetClipboard(clipboard, lastURL)
 
     while(True):
         try:
             time.sleep(1)
-            win32clipboard.OpenClipboard()
-            clipboard = win32clipboard.GetClipboardData()
-            win32clipboard.CloseClipboard()
+            clipboard, lastURL = GetClipboard(clipboard, lastURL)
             if (lastURL != clipboard):
                 print("it changed {0}".format(clipboard))
                 match = re.search("(http)(s?)(:\/\/)(www\.)?(youtube\.com\/watch\?v\=)(.*)", clipboard)
@@ -73,6 +70,18 @@ def main():
         except KeyboardInterrupt:
             print("Exiting")
             exit(0)
+
+
+def GetClipboard(clipboard, lastURL):
+    win32clipboard.OpenClipboard()
+    try:
+        clipboard = win32clipboard.GetClipboardData()
+    except TypeError:
+        clipboard = "invalidData"
+        lastURL = clipboard
+    win32clipboard.CloseClipboard()
+    return clipboard, lastURL
+
 
 if __name__ == "__main__":
     main()
