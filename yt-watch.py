@@ -26,6 +26,11 @@ def logVideo(url):
     print(("[{0}] Playing video in thread {1} - {2}").format(
         datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), _thread.get_ident(), url))
 
+def logChange(oldClipboard, newClipboard):
+    print(("[{0}] Clipboard changed in main thread {1} - from {2} to {3}").format(
+        datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), _thread.get_ident(), oldClipboard, newClipboard))
+
+
 def runPlayer(arguments):
     try:
         logStart()
@@ -44,15 +49,15 @@ def main():
     if (config["mpv"] is None and config["livestreamer"] is None):
         print("At least one player has to be setup")
         exit(3)
-    clipboard, lastURL = "", ""
-    clipboard, lastURL = GetClipboard(clipboard, lastURL)
+    clipboard, lastClipboard = "", ""
+    clipboard, lastClipboard = GetClipboard(clipboard, lastClipboard)
 
     while(True):
         try:
             time.sleep(1)
-            clipboard, lastURL = GetClipboard(clipboard, lastURL)
-            if (lastURL != clipboard):
-                print("it changed {0}".format(clipboard))
+            clipboard, lastClipboard = GetClipboard(clipboard, lastClipboard)
+            if (lastClipboard != clipboard):
+                logChange(lastClipboard,clipboard)
                 match = re.search("(http)(s?)(:\/\/)(www\.)?(youtube\.com\/watch\?v\=)(.*)", clipboard)
                 if (match and match.group(6)):
                     videoId = match.group(6)
@@ -66,7 +71,7 @@ def main():
                                                 config["livestreamer"]["quality"],
                                                 "-p " + config["livestreamer"]["player"]]),))
 
-            lastURL = clipboard
+            lastClipboard = clipboard
         except KeyboardInterrupt:
             print("Exiting")
             exit(0)
