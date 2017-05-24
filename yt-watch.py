@@ -5,9 +5,25 @@ import re
 import subprocess
 import time
 import win32clipboard
+import logging
+
+formatter = logging.Formatter('%(time)s - %(name)s - %(levelname)s - thread: %(thread)d - %(message)s')
+
+logger = logging.getLogger('yt-watch')
+logger.setLevel(logging.DEBUG)
+
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+
+# fh = logging.FileHandler(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H-%M-%S') + ".log")
+# fh.setLevel(logging.DEBUG)
+# fh.setFormatter(formatter)
+# logger.addHandler(fh)
 
 def log(action):
-    print(("[{0}] " + action + " thread {1}").format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), _thread.get_ident()))
+    logger.info("Action %s", action, extra=GetExtraArguments())
 
 def logStart():
     log("Starting")
@@ -19,16 +35,17 @@ def logStop():
     log("Stopped")
 
 def logError(exception):
-    print(("[{0}] Error in thread {1} - {2}").format(
-        datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), _thread.get_ident(), exception))
+    logger.error("Error: %s", exception, extra=GetExtraArguments())
 
 def logVideo(url):
-    print(("[{0}] Playing video in thread {1} - {2}").format(
-        datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), _thread.get_ident(), url))
+    logger.info("Playing video %s", url, extra=GetExtraArguments())
 
 def logChange(oldClipboard, newClipboard):
-    print(("[{0}] Clipboard changed in main thread {1} - from {2} to {3}").format(
-        datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), _thread.get_ident(), oldClipboard, newClipboard))
+    logger.info("Clipboard changed from \"%s\" to \"%s\"", oldClipboard, newClipboard, extra=GetExtraArguments())
+
+def GetExtraArguments():
+    arguments = {"time": datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')}
+    return arguments
 
 
 def runPlayer(arguments):
