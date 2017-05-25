@@ -1,4 +1,4 @@
-import _thread
+from threading import Thread
 import configparser
 import datetime
 import re
@@ -81,14 +81,12 @@ def main():
                     videoId = match.group(6)
                     if videoId is not None:
                         if config["youtube"]["player"] == "mpv":
-                            _thread.start_new_thread(runPlayer,
-                             (([config["mpv"]["bin"],
+                            Thread(target=runPlayer, args=(([config["mpv"]["bin"],
                                 "https://www.youtube.com/watch?v=" + videoId,
-                                config["mpv"]["quality"]]),))
+                                config["mpv"]["quality"]]),)).start()
                         else:
                             if config["youtube"]["player"] == "livestreamer":
-                                _thread.start_new_thread(runPlayer,
-                                (([config["livestreamer"]["bin"],
+                                Thread(target=runPlayer, args=(([config["livestreamer"]["bin"],
                                 "https://www.youtube.com/watch?v=" + videoId,
                                 config["livestreamer"]["quality"],
                                 "-p " + config["livestreamer"]["player"]]),))
