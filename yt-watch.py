@@ -57,6 +57,7 @@ def runPlayer(arguments):
     except Exception as e:
         logError(e)
 
+
 def main():
     config = configparser.ConfigParser()
     config.read('config.ini')
@@ -80,13 +81,17 @@ def main():
                     videoId = match.group(6)
                     if videoId is not None:
                         if config["youtube"]["player"] == "mpv":
-                            _thread.start_new_thread(runPlayer, (([config["mpv"]["bin"], "https://www.youtube.com/watch?v=" + videoId, config["mpv"]["quality"]]),))
+                            _thread.start_new_thread(runPlayer,
+                             (([config["mpv"]["bin"],
+                                "https://www.youtube.com/watch?v=" + videoId,
+                                config["mpv"]["quality"]]),))
                         else:
                             if config["youtube"]["player"] == "livestreamer":
-                                _thread.start_new_thread(runPlayer, (([config["livestreamer"]["bin"],
-                                                "https://www.youtube.com/watch?v=" + videoId,
-                                                config["livestreamer"]["quality"],
-                                                "-p " + config["livestreamer"]["player"]]),))
+                                _thread.start_new_thread(runPlayer,
+                                (([config["livestreamer"]["bin"],
+                                "https://www.youtube.com/watch?v=" + videoId,
+                                config["livestreamer"]["quality"],
+                                "-p " + config["livestreamer"]["player"]]),))
 
             lastClipboard = clipboard
         except KeyboardInterrupt:
