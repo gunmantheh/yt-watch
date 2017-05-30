@@ -22,6 +22,15 @@ logger.addHandler(ch)
 # fh.setFormatter(formatter)
 # logger.addHandler(fh)
 
+config = configparser.ConfigParser()
+config.read('config.ini')
+if config["youtube"] is None:
+    print("Youtube has invalid configuration")
+    exit(2)
+if (config["mpv"] is None and config["livestreamer"] is None):
+    print("At least one player has to be setup")
+    exit(3)
+
 def log(action):
     logger.info("Action %s", action, extra=GetExtraArguments())
 
@@ -52,21 +61,82 @@ def runPlayer(arguments):
     try:
         logStart()
         logVideo(arguments[1])
-        subprocess.run(arguments, shell=True)
+        log(arguments)
+        process = subprocess.run(arguments, shell=True, stderr=subprocess.PIPE)
         logFinish()
     except Exception as e:
         logError(e)
 
+# TODO Refactor match methods
+
+def matchYoutube(clipboard):
+    website = "youtube"
+    url = "https://www.youtube.com/watch?v="
+    log("matching {0}".format(website))
+    player = config["youtube"]["player"]
+    if not player:
+        return False
+    match = re.search("(http)(s?)(:\/\/)(www\.)?(youtube\.com\/watch\?v\=)(.*)", clipboard)
+    if (match and match.group(6)):
+        videoId = match.group(6)
+        if videoId is not None:
+            log("{0} matched".format(website))
+            if player == "mpv":
+                log("starting {0} via {1}".format(website, player))
+                Thread(target=runPlayer, args=(([config["mpv"]["bin"],
+                                                 url + videoId,
+                                                 config["mpv"]["quality"]]),)).start()
+                return True
+            else:
+                if player == "livestreamer":
+                    log("starting {0} via {1}".format(website, player))
+                    Thread(target=runPlayer, args=(([config["livestreamer"]["bin"],
+                                                     url + videoId,
+                                                     config["livestreamer"]["quality"],
+                                                     "-p " + config["livestreamer"]["player"]]),)).start()
+                    return True
+    log("{0} didn't match".format(website))
+    return False
+
+def matchTwitch(clipboard):
+    website = "twitch"
+    url = "https://www.twitch.tv/"
+    log("matching {0}".format(website))
+    player = config["twitch"]["player"]
+    if not player:
+        return False
+    match = re.search("(http)(s?)(:\/\/)(www\.)?(twitch\.tv\/)(.*)", clipboard)
+    if (match and match.group(6)):
+        videoId = match.group(6)
+        if videoId is not None:
+            log("{0} matched".format(website))
+            if player == "mpv":
+                log("starting {0} via {1}".format(website, player))
+                Thread(target=runPlayer, args=(([config["mpv"]["bin"],
+                                                 url + videoId,
+                                                 config["mpv"]["quality"]]),)).start()
+                return True
+            else:
+                if player == "livestreamer":
+                    log("starting {0} via {1}".format(website, player))
+                    Thread(target=runPlayer, args=(([config["livestreamer"]["bin"],
+                                                     url + videoId,
+                                                     config["livestreamer"]["quality"],
+                                                     "-p " + config["livestreamer"]["player"]]),)).start()
+                    return True
+    log("{0} didn't match".format(website))
+    return False
+
+def matchClipboard(clipboard):
+    if not matchYoutube(clipboard):
+        if not matchTwitch(clipboard):
+            log("nothing match")
+            return False # Nothing matches
+    return True # Something matched
+
 
 def main():
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    if config["youtube"] is None:
-        print("Youtube has invalid configuration")
-        exit(2)
-    if (config["mpv"] is None and config["livestreamer"] is None):
-        print("At least one player has to be setup")
-        exit(3)
+
     clipboard, lastClipboard = "", ""
     clipboard, lastClipboard = GetClipboard(clipboard, lastClipboard)
 
@@ -76,21 +146,7 @@ def main():
             clipboard, lastClipboard = GetClipboard(clipboard, lastClipboard)
             if (lastClipboard != clipboard):
                 logChange(lastClipboard,clipboard)
-                match = re.search("(http)(s?)(:\/\/)(www\.)?(youtube\.com\/watch\?v\=)(.*)", clipboard)
-                if (match and match.group(6)):
-                    videoId = match.group(6)
-                    if videoId is not None:
-                        if config["youtube"]["player"] == "mpv":
-                            Thread(target=runPlayer, args=(([config["mpv"]["bin"],
-                                "https://www.youtube.com/watch?v=" + videoId,
-                                config["mpv"]["quality"]]),)).start()
-                        else:
-                            if config["youtube"]["player"] == "livestreamer":
-                                Thread(target=runPlayer, args=(([config["livestreamer"]["bin"],
-                                "https://www.youtube.com/watch?v=" + videoId,
-                                config["livestreamer"]["quality"],
-                                "-p " + config["livestreamer"]["player"]]),))
-
+                matchClipboard(clipboard)
             lastClipboard = clipboard
         except KeyboardInterrupt:
             print("Exiting")
