@@ -93,7 +93,7 @@ def matchYoutube(clipboard):
                     Thread(target=runPlayer, args=(([config["livestreamer"]["bin"],
                                                      url + videoId,
                                                      config["livestreamer"]["quality"],
-                                                     "-p " + config["livestreamer"]["player"]]),))
+                                                     "-p " + config["livestreamer"]["player"]]),)).start()
                     return True
     log("{0} didn't match".format(website))
     return False
@@ -122,7 +122,7 @@ def matchTwitch(clipboard):
                     Thread(target=runPlayer, args=(([config["livestreamer"]["bin"],
                                                      url + videoId,
                                                      config["livestreamer"]["quality"],
-                                                     "-p " + config["livestreamer"]["player"]]),))
+                                                     "-p " + config["livestreamer"]["player"]]),)).start()
                     return True
     log("{0} didn't match".format(website))
     return False
