@@ -34,6 +34,9 @@ if (config["mpv"] is None and config["livestreamer"] is None):
 def log(action):
     logger.info("Action %s", action, extra=GetExtraArguments())
 
+def logd(action):
+    logger.debug("Action %s", action, extra=GetExtraArguments())
+
 def logStart():
     log("Starting")
 
@@ -72,7 +75,7 @@ def runPlayer(arguments):
 def matchYoutube(clipboard):
     website = "youtube"
     url = "https://www.youtube.com/watch?v="
-    log("matching {0}".format(website))
+    logd("matching {0}".format(website))
     player = config["youtube"]["player"]
     if not player:
         return False
@@ -80,28 +83,28 @@ def matchYoutube(clipboard):
     if (match and match.group(6)):
         videoId = match.group(6)
         if videoId is not None:
-            log("{0} matched".format(website))
+            logd("{0} matched".format(website))
             if player == "mpv":
-                log("starting {0} via {1}".format(website, player))
+                logd("starting {0} via {1}".format(website, player))
                 Thread(target=runPlayer, args=(([config["mpv"]["bin"],
                                                  url + videoId,
                                                  config["mpv"]["quality"]]),)).start()
                 return True
             else:
                 if player == "livestreamer":
-                    log("starting {0} via {1}".format(website, player))
+                    logd("starting {0} via {1}".format(website, player))
                     Thread(target=runPlayer, args=(([config["livestreamer"]["bin"],
                                                      url + videoId,
                                                      config["livestreamer"]["quality"],
                                                      "-p " + config["livestreamer"]["player"]]),)).start()
                     return True
-    log("{0} didn't match".format(website))
+    logd("{0} didn't match".format(website))
     return False
 
 def matchTwitch(clipboard):
     website = "twitch"
     url = "https://www.twitch.tv/"
-    log("matching {0}".format(website))
+    logd("matching {0}".format(website))
     player = config["twitch"]["player"]
     if not player:
         return False
@@ -109,28 +112,28 @@ def matchTwitch(clipboard):
     if (match and match.group(6)):
         videoId = match.group(6)
         if videoId is not None:
-            log("{0} matched".format(website))
+            logd("{0} matched".format(website))
             if player == "mpv":
-                log("starting {0} via {1}".format(website, player))
+                logd("starting {0} via {1}".format(website, player))
                 Thread(target=runPlayer, args=(([config["mpv"]["bin"],
                                                  url + videoId,
                                                  config["mpv"]["quality"]]),)).start()
                 return True
             else:
                 if player == "livestreamer":
-                    log("starting {0} via {1}".format(website, player))
+                    logd("starting {0} via {1}".format(website, player))
                     Thread(target=runPlayer, args=(([config["livestreamer"]["bin"],
                                                      url + videoId,
                                                      config["livestreamer"]["quality"],
                                                      "-p " + config["livestreamer"]["player"]]),)).start()
                     return True
-    log("{0} didn't match".format(website))
+    logd("{0} didn't match".format(website))
     return False
 
 def matchClipboard(clipboard):
     if not matchYoutube(clipboard):
         if not matchTwitch(clipboard):
-            log("nothing match")
+            logd("nothing matched")
             return False # Nothing matches
     return True # Something matched
 
