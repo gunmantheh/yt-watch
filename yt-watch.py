@@ -7,6 +7,11 @@ import time
 import win32clipboard
 import logging
 
+LIVESTREAMER = "livestreamer"
+YOUTUBE = "youtube"
+MPV = "mpv"
+TWITCH = "twitch"
+
 formatter = logging.Formatter('%(time)s - %(name)s - %(levelname)s - thread: %(thread)d - %(message)s')
 
 logger = logging.getLogger('yt-watch')
@@ -24,10 +29,10 @@ logger.addHandler(ch)
 
 config = configparser.ConfigParser()
 config.read('config.ini')
-if config["youtube"] is None:
+if config[YOUTUBE] is None:
     print("Youtube has invalid configuration")
     exit(2)
-if (config["mpv"] is None and config["livestreamer"] is None):
+if (config[MPV] is None and config[LIVESTREAMER] is None):
     print("At least one player has to be setup")
     exit(3)
 
@@ -73,10 +78,10 @@ def runPlayer(arguments):
 # TODO Refactor match methods
 
 def matchYoutube(clipboard):
-    website = "youtube"
+    website = YOUTUBE
     url = "https://www.youtube.com/watch?v="
     logd("matching {0}".format(website))
-    player = config["youtube"]["player"]
+    player = config[YOUTUBE]["player"]
     if not player:
         return False
     match = re.search("(http)(s?)(:\/\/)(www\.)?(youtube\.com\/watch\?v\=)(.*)", clipboard)
@@ -84,28 +89,28 @@ def matchYoutube(clipboard):
         videoId = match.group(6)
         if videoId is not None:
             logd("{0} matched".format(website))
-            if player == "mpv":
+            if player == MPV:
                 logd("starting {0} via {1}".format(website, player))
-                Thread(target=runPlayer, args=(([config["mpv"]["bin"],
+                Thread(target=runPlayer, args=(([config[MPV]["bin"],
                                                  url + videoId,
-                                                 config["mpv"]["quality"]]),)).start()
+                                                 config[MPV]["quality"]]),)).start()
                 return True
             else:
-                if player == "livestreamer":
+                if player == LIVESTREAMER:
                     logd("starting {0} via {1}".format(website, player))
-                    Thread(target=runPlayer, args=(([config["livestreamer"]["bin"],
+                    Thread(target=runPlayer, args=(([config[LIVESTREAMER]["bin"],
                                                      url + videoId,
-                                                     config["livestreamer"]["quality"],
-                                                     "-p " + config["livestreamer"]["player"]]),)).start()
+                                                     config[LIVESTREAMER]["quality"],
+                                                     "-p " + config[LIVESTREAMER]["player"]]),)).start()
                     return True
     logd("{0} didn't match".format(website))
     return False
 
 def matchTwitch(clipboard):
-    website = "twitch"
+    website = TWITCH
     url = "https://www.twitch.tv/"
     logd("matching {0}".format(website))
-    player = config["twitch"]["player"]
+    player = config[TWITCH]["player"]
     if not player:
         return False
     match = re.search("(http)(s?)(:\/\/)(www\.)?(twitch\.tv\/)(.*)", clipboard)
@@ -113,19 +118,19 @@ def matchTwitch(clipboard):
         videoId = match.group(6)
         if videoId is not None:
             logd("{0} matched".format(website))
-            if player == "mpv":
+            if player == MPV:
                 logd("starting {0} via {1}".format(website, player))
-                Thread(target=runPlayer, args=(([config["mpv"]["bin"],
+                Thread(target=runPlayer, args=(([config[MPV]["bin"],
                                                  url + videoId,
-                                                 config["mpv"]["quality"]]),)).start()
+                                                 config[MPV]["quality"]]),)).start()
                 return True
             else:
-                if player == "livestreamer":
+                if player == LIVESTREAMER:
                     logd("starting {0} via {1}".format(website, player))
-                    Thread(target=runPlayer, args=(([config["livestreamer"]["bin"],
+                    Thread(target=runPlayer, args=(([config[LIVESTREAMER]["bin"],
                                                      url + videoId,
-                                                     config["livestreamer"]["quality"],
-                                                     "-p " + config["livestreamer"]["player"]]),)).start()
+                                                     config[LIVESTREAMER]["quality"],
+                                                     "-p " + config[LIVESTREAMER]["player"]]),)).start()
                     return True
     logd("{0} didn't match".format(website))
     return False
