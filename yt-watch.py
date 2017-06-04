@@ -27,6 +27,38 @@ logger.addHandler(ch)
 # fh.setFormatter(formatter)
 # logger.addHandler(fh)
 
+class Player():
+    def __init__(self, player, clipboard, website, url, regEx):
+        self.player = player
+        self.clipboard = clipboard
+        self.website = website
+        self.url = url
+        self.regEx = regEx
+    def Play(self):
+        if not self.player:
+            return False
+        match = re.search(self.regEx, self.clipboard)
+        if (match and match.group(6)):
+            videoId = match.group(6)
+            if videoId is not None:
+                logd("{0} matched".format(self.website))
+                if self.player == MPV:
+                    logd("starting {0} via {1}".format(self.website, self.player))
+                    Thread(target=runPlayer, args=(([config[MPV]["bin"],
+                                                     self.url + videoId,
+                                                     config[MPV]["quality"]]),)).start()
+                    return True
+                else:
+                    if self.player == LIVESTREAMER:
+                        logd("starting {0} via {1}".format(self.website, self.player))
+                        Thread(target=runPlayer, args=(([config[LIVESTREAMER]["bin"],
+                                                         self.url + videoId,
+                                                         config[LIVESTREAMER]["quality"],
+                                                         "-p " + config[LIVESTREAMER]["player"]]),)).start()
+                        return True
+        logd("{0} didn't match".format(self.website))
+        return False
+
 config = configparser.ConfigParser()
 config.read('config.ini')
 if config[YOUTUBE] is None:
@@ -64,76 +96,32 @@ def GetExtraArguments():
     arguments = {"time": datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')}
     return arguments
 
-
 def runPlayer(arguments):
     try:
         logStart()
         logVideo(arguments[1])
-        log(arguments)
+        logd(arguments)
         process = subprocess.run(arguments, shell=True, stderr=subprocess.PIPE)
         logFinish()
     except Exception as e:
         logError(e)
-
-# TODO Refactor match methods
 
 def matchYoutube(clipboard):
     website = YOUTUBE
     url = "https://www.youtube.com/watch?v="
     logd("matching {0}".format(website))
     player = config[YOUTUBE]["player"]
-    if not player:
-        return False
-    match = re.search("(http)(s?)(:\/\/)(www\.)?(youtube\.com\/watch\?v\=)(.*)", clipboard)
-    if (match and match.group(6)):
-        videoId = match.group(6)
-        if videoId is not None:
-            logd("{0} matched".format(website))
-            if player == MPV:
-                logd("starting {0} via {1}".format(website, player))
-                Thread(target=runPlayer, args=(([config[MPV]["bin"],
-                                                 url + videoId,
-                                                 config[MPV]["quality"]]),)).start()
-                return True
-            else:
-                if player == LIVESTREAMER:
-                    logd("starting {0} via {1}".format(website, player))
-                    Thread(target=runPlayer, args=(([config[LIVESTREAMER]["bin"],
-                                                     url + videoId,
-                                                     config[LIVESTREAMER]["quality"],
-                                                     "-p " + config[LIVESTREAMER]["player"]]),)).start()
-                    return True
-    logd("{0} didn't match".format(website))
-    return False
+    regEx = "(http)(s?)(:\/\/)(www\.)?(youtube\.com\/watch\?v\=)(.*)"
+    return Player(player, clipboard, website, url, regEx).Play()
 
 def matchTwitch(clipboard):
     website = TWITCH
     url = "https://www.twitch.tv/"
     logd("matching {0}".format(website))
     player = config[TWITCH]["player"]
-    if not player:
-        return False
-    match = re.search("(http)(s?)(:\/\/)(www\.)?(twitch\.tv\/)(.*)", clipboard)
-    if (match and match.group(6)):
-        videoId = match.group(6)
-        if videoId is not None:
-            logd("{0} matched".format(website))
-            if player == MPV:
-                logd("starting {0} via {1}".format(website, player))
-                Thread(target=runPlayer, args=(([config[MPV]["bin"],
-                                                 url + videoId,
-                                                 config[MPV]["quality"]]),)).start()
-                return True
-            else:
-                if player == LIVESTREAMER:
-                    logd("starting {0} via {1}".format(website, player))
-                    Thread(target=runPlayer, args=(([config[LIVESTREAMER]["bin"],
-                                                     url + videoId,
-                                                     config[LIVESTREAMER]["quality"],
-                                                     "-p " + config[LIVESTREAMER]["player"]]),)).start()
-                    return True
-    logd("{0} didn't match".format(website))
-    return False
+    regEx = "(http)(s?)(:\/\/)(www\.)?(twitch\.tv\/)(.*)"
+    return Player(player, clipboard, website, url, regEx).Play()
+
 
 def matchClipboard(clipboard):
     if not matchYoutube(clipboard):
