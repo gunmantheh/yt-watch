@@ -13,6 +13,8 @@ MPV = "mpv"
 TWITCH = "twitch"
 MAIN = "main"
 MESSAGES = "messages"
+LOGTOFILE = "logtofile"
+
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -32,6 +34,7 @@ if config[MAIN] and config[MAIN][MESSAGES]:
         "debug" : logging.DEBUG,
         "info" : logging.INFO,
         "warning" : logging.WARNING,
+        "error" : logging.ERROR,
         "critical" : logging.CRITICAL
     }
     levelOfDebugging = switch.get(config[MAIN][MESSAGES], logging.INFO)
@@ -44,10 +47,11 @@ ch.setLevel(levelOfDebugging)
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-# fh = logging.FileHandler(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H-%M-%S') + ".log")
-# fh.setLevel(logging.DEBUG)
-# fh.setFormatter(formatter)
-# logger.addHandler(fh)
+if config[MAIN] and config[MAIN][LOGTOFILE] and config[MAIN][LOGTOFILE].lower() == "yes":
+    fh = logging.FileHandler(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H-%M-%S') + ".log")
+    fh.setLevel(levelOfDebugging)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
 
 class Player():
     def __init__(self, player, clipboard, website, url, regEx):
