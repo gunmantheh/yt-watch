@@ -83,10 +83,12 @@ class Player():
 
 
 def log(action):
-    logger.info("Action %s", action, extra=GetExtraArguments())
+    if logger.isEnabledFor(logging.INFO):
+        logger.info("Action %s", action, extra=GetExtraArguments())
 
 def logd(action):
-    logger.debug("Action %s", action, extra=GetExtraArguments())
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug("Action %s", action, extra=GetExtraArguments())
 
 def logStart():
     log("Starting")
@@ -98,13 +100,16 @@ def logStop():
     log("Stopped")
 
 def logError(exception):
-    logger.error("Error: %s", exception, extra=GetExtraArguments())
+    if logger.isEnabledFor(logging.ERROR):
+        logger.error("Error: %s", exception, extra=GetExtraArguments())
 
 def logVideo(url):
-    logger.info("Playing video %s", url, extra=GetExtraArguments())
+    if logger.isEnabledFor(logging.INFO):
+        logger.info("Playing video %s", url, extra=GetExtraArguments())
 
 def logChange(oldClipboard, newClipboard):
-    logger.info("Clipboard changed from \"%s\" to \"%s\"", oldClipboard, newClipboard, extra=GetExtraArguments())
+    if logger.isEnabledFor(logging.INFO):
+        logger.info("Clipboard changed from \"%s\" to \"%s\"", oldClipboard, newClipboard, extra=GetExtraArguments())
 
 def GetExtraArguments():
     arguments = {"time": datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')}
