@@ -11,14 +11,36 @@ LIVESTREAMER = "livestreamer"
 YOUTUBE = "youtube"
 MPV = "mpv"
 TWITCH = "twitch"
+MAIN = "main"
+MESSAGES = "messages"
+
+config = configparser.ConfigParser()
+config.read('config.ini')
+if config[YOUTUBE] is None:
+    print("Youtube has invalid configuration")
+    exit(2)
+if (config[MPV] is None and config[LIVESTREAMER] is None):
+    print("At least one player has to be setup")
+    exit(3)
 
 formatter = logging.Formatter('%(time)s - %(name)s - %(levelname)s - thread: %(thread)d - %(message)s')
 
+levelOfDebugging = logging.DEBUG
+
+if config[MAIN] and config[MAIN][MESSAGES]:
+    switch = {
+        "debug" : logging.DEBUG,
+        "info" : logging.INFO,
+        "warning" : logging.WARNING,
+        "critical" : logging.CRITICAL
+    }
+    levelOfDebugging = switch.get(config[MAIN][MESSAGES], logging.INFO)
+
 logger = logging.getLogger('yt-watch')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(levelOfDebugging)
 
 ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
+ch.setLevel(levelOfDebugging)
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
@@ -59,14 +81,6 @@ class Player():
         logd("{0} didn't match".format(self.website))
         return False
 
-config = configparser.ConfigParser()
-config.read('config.ini')
-if config[YOUTUBE] is None:
-    print("Youtube has invalid configuration")
-    exit(2)
-if (config[MPV] is None and config[LIVESTREAMER] is None):
-    print("At least one player has to be setup")
-    exit(3)
 
 def log(action):
     logger.info("Action %s", action, extra=GetExtraArguments())
