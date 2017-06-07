@@ -27,7 +27,7 @@ if (config[MPV] is None and config[LIVESTREAMER] is None):
 
 formatter = logging.Formatter('%(time)s - %(name)s - %(levelname)s - thread: %(thread)d - %(message)s')
 
-levelOfDebugging = logging.DEBUG
+levelOfDebugging = logging.ERROR
 
 if config[MAIN] and config[MAIN][MESSAGES]:
     switch = {
@@ -37,7 +37,7 @@ if config[MAIN] and config[MAIN][MESSAGES]:
         "error" : logging.ERROR,
         "critical" : logging.CRITICAL
     }
-    levelOfDebugging = switch.get(config[MAIN][MESSAGES], logging.INFO)
+    levelOfDebugging = switch.get(config[MAIN][MESSAGES], logging.ERROR)
 
 logger = logging.getLogger('yt-watch')
 logger.setLevel(levelOfDebugging)
