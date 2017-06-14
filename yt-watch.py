@@ -1,11 +1,11 @@
-from threading import Thread
 import configparser
 import datetime
+import logging
 import re
 import subprocess
 import time
 import win32clipboard
-import logging
+from threading import Thread
 
 LIVESTREAMER = "livestreamer"
 YOUTUBE = "youtube"
@@ -15,13 +15,12 @@ MAIN = "main"
 MESSAGES = "messages"
 LOGTOFILE = "logtofile"
 
-
 config = configparser.ConfigParser()
 config.read('config.ini')
 if config[YOUTUBE] is None:
     print("Youtube has invalid configuration")
     exit(2)
-if (config[MPV] is None and config[LIVESTREAMER] is None):
+if config[MPV] is None and config[LIVESTREAMER] is None:
     print("At least one player has to be setup")
     exit(3)
 
@@ -31,11 +30,11 @@ levelOfDebugging = logging.ERROR
 
 if config[MAIN] and config[MAIN][MESSAGES]:
     switch = {
-        "debug" : logging.DEBUG,
-        "info" : logging.INFO,
-        "warning" : logging.WARNING,
-        "error" : logging.ERROR,
-        "critical" : logging.CRITICAL
+        "debug": logging.DEBUG,
+        "info": logging.INFO,
+        "warning": logging.WARNING,
+        "error": logging.ERROR,
+        "critical": logging.CRITICAL
     }
     levelOfDebugging = switch.get(config[MAIN][MESSAGES], logging.ERROR)
 
@@ -53,18 +52,20 @@ if config[MAIN] and config[MAIN][LOGTOFILE] and config[MAIN][LOGTOFILE].lower() 
     fh.setFormatter(formatter)
     logger.addHandler(fh)
 
-class Player():
+
+class Player:
     def __init__(self, player, clipboard, website, url, regEx):
         self.player = player
         self.clipboard = clipboard
         self.website = website
         self.url = url
         self.regEx = regEx
+
     def Play(self):
         if not self.player:
             return False
         match = re.search(self.regEx, self.clipboard)
-        if (match and match.group(6)):
+        if match and match.group(6):
             videoId = match.group(6)
             if videoId is not None:
                 logd("{0} matched".format(self.website))
@@ -90,44 +91,54 @@ def log(action):
     if logger.isEnabledFor(logging.INFO):
         logger.info("Action %s", action, extra=GetExtraArguments())
 
+
 def logd(action):
     if logger.isEnabledFor(logging.DEBUG):
         logger.debug("Action %s", action, extra=GetExtraArguments())
 
+
 def logStart():
     log("Starting")
+
 
 def logFinish():
     log("Finished")
 
+
 def logStop():
     log("Stopped")
+
 
 def logError(exception):
     if logger.isEnabledFor(logging.ERROR):
         logger.error("Error: %s", exception, extra=GetExtraArguments())
 
+
 def logVideo(url):
     if logger.isEnabledFor(logging.INFO):
         logger.info("Playing video %s", url, extra=GetExtraArguments())
+
 
 def logChange(oldClipboard, newClipboard):
     if logger.isEnabledFor(logging.INFO):
         logger.info("Clipboard changed from \"%s\" to \"%s\"", oldClipboard, newClipboard, extra=GetExtraArguments())
 
+
 def GetExtraArguments():
     arguments = {"time": datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')}
     return arguments
+
 
 def runPlayer(arguments):
     try:
         logStart()
         logVideo(arguments[1])
         logd(arguments)
-        process = subprocess.run(arguments, shell=True, stderr=subprocess.PIPE)
+        subprocess.run(arguments, shell=True, stderr=subprocess.PIPE)
         logFinish()
     except Exception as e:
         logError(e)
+
 
 def matchYoutube(clipboard):
     website = YOUTUBE
@@ -136,6 +147,7 @@ def matchYoutube(clipboard):
     player = config[YOUTUBE]["player"]
     regEx = "(http)(s?)(:\/\/)(www\.)?(youtube\.com\/watch\?v\=)(.*)"
     return Player(player, clipboard, website, url, regEx).Play()
+
 
 def matchTwitch(clipboard):
     website = TWITCH
@@ -150,21 +162,20 @@ def matchClipboard(clipboard):
     if not matchYoutube(clipboard):
         if not matchTwitch(clipboard):
             logd("nothing matched")
-            return False # Nothing matches
-    return True # Something matched
+            return False  # Nothing matches
+    return True  # Something matched
 
 
 def main():
-
     clipboard, lastClipboard = "", ""
     clipboard, lastClipboard = GetClipboard(clipboard, lastClipboard)
 
-    while(True):
+    while True:
         try:
             time.sleep(1)
             clipboard, lastClipboard = GetClipboard(clipboard, lastClipboard)
-            if (lastClipboard != clipboard):
-                logChange(lastClipboard,clipboard)
+            if lastClipboard != clipboard:
+                logChange(lastClipboard, clipboard)
                 matchClipboard(clipboard)
             lastClipboard = clipboard
         except KeyboardInterrupt:
