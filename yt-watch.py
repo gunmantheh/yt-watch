@@ -71,20 +71,30 @@ class Player:
                 logd("{0} matched".format(self.website))
                 if self.player == MPV:
                     logd("starting {0} via {1}".format(self.website, self.player))
-                    Thread(target=runPlayer, args=(([config[MPV]["bin"],
+                    Thread(target=self.runPlayer, args=(([config[MPV]["bin"],
                                                      self.url + videoId,
                                                      config[MPV]["quality"]]),)).start()
                     return True
                 else:
                     if self.player == LIVESTREAMER:
                         logd("starting {0} via {1}".format(self.website, self.player))
-                        Thread(target=runPlayer, args=(([config[LIVESTREAMER]["bin"],
+                        Thread(target=self.runPlayer, args=(([config[LIVESTREAMER]["bin"],
                                                          self.url + videoId,
                                                          config[LIVESTREAMER]["quality"],
                                                          "-p " + config[LIVESTREAMER]["player"]]),)).start()
                         return True
         logd("{0} didn't match".format(self.website))
         return False
+
+    def runPlayer(arguments):
+        try:
+            logStart()
+            logVideo(arguments[1])
+            logd(arguments)
+            subprocess.run(arguments, shell=True, stderr=subprocess.PIPE)
+            logFinish()
+        except Exception as e:
+            logError(e)
 
 
 def log(action):
@@ -127,17 +137,6 @@ def logChange(oldClipboard, newClipboard):
 def GetExtraArguments():
     arguments = {"time": datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')}
     return arguments
-
-
-def runPlayer(arguments):
-    try:
-        logStart()
-        logVideo(arguments[1])
-        logd(arguments)
-        subprocess.run(arguments, shell=True, stderr=subprocess.PIPE)
-        logFinish()
-    except Exception as e:
-        logError(e)
 
 
 def matchYoutube(clipboard):
