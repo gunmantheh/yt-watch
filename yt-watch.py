@@ -1,11 +1,11 @@
 import configparser
-import datetime
 import logging
 import re
 import subprocess
-import time
 import win32clipboard
 from threading import Thread
+from loggingHelp import LogHelper
+import datetime, time
 
 LIVESTREAMER = "livestreamer"
 YOUTUBE = "youtube"
@@ -52,6 +52,7 @@ if config[MAIN] and config[MAIN][LOGTOFILE] and config[MAIN][LOGTOFILE].lower() 
     fh.setFormatter(formatter)
     logger.addHandler(fh)
 
+lh = LogHelper(logger)
 
 class Player:
     def __init__(self, player, clipboard, website, url, regEx):
@@ -68,81 +69,39 @@ class Player:
         if match and match.group(6):
             videoId = match.group(6)
             if videoId is not None:
-                logd("{0} matched".format(self.website))
+                lh.logd("{0} matched".format(self.website))
                 if self.player == MPV:
-                    logd("starting {0} via {1}".format(self.website, self.player))
+                    lh.logd("starting {0} via {1}".format(self.website, self.player))
                     Thread(target=self.runPlayer, args=(([config[MPV]["bin"],
                                                      self.url + videoId,
                                                      config[MPV]["quality"]]),)).start()
                     return True
                 else:
                     if self.player == LIVESTREAMER:
-                        logd("starting {0} via {1}".format(self.website, self.player))
+                        lh.logd("starting {0} via {1}".format(self.website, self.player))
                         Thread(target=self.runPlayer, args=(([config[LIVESTREAMER]["bin"],
                                                          self.url + videoId,
                                                          config[LIVESTREAMER]["quality"],
                                                          "-p " + config[LIVESTREAMER]["player"]]),)).start()
                         return True
-        logd("{0} didn't match".format(self.website))
+        lh.logd("{0} didn't match".format(self.website))
         return False
 
     def runPlayer(self, arguments):
         try:
-            logStart()
-            logVideo(arguments[1])
-            logd(arguments)
+            lh.logStart()
+            lh.logVideo(arguments[1])
+            lh.logd(arguments)
             subprocess.run(arguments, shell=True, stderr=subprocess.PIPE)
-            logFinish()
+            lh.logFinish()
         except Exception as e:
-            logError(e)
-
-
-def log(action):
-    if logger.isEnabledFor(logging.INFO):
-        logger.info("Action %s", action, extra=GetExtraArguments())
-
-
-def logd(action):
-    if logger.isEnabledFor(logging.DEBUG):
-        logger.debug("Action %s", action, extra=GetExtraArguments())
-
-
-def logStart():
-    log("Starting")
-
-
-def logFinish():
-    log("Finished")
-
-
-def logStop():
-    log("Stopped")
-
-
-def logError(exception):
-    if logger.isEnabledFor(logging.ERROR):
-        logger.error("Error: %s", exception, extra=GetExtraArguments())
-
-
-def logVideo(url):
-    if logger.isEnabledFor(logging.INFO):
-        logger.info("Playing video %s", url, extra=GetExtraArguments())
-
-
-def logChange(oldClipboard, newClipboard):
-    if logger.isEnabledFor(logging.INFO):
-        logger.info("Clipboard changed from \"%s\" to \"%s\"", oldClipboard, newClipboard, extra=GetExtraArguments())
-
-
-def GetExtraArguments():
-    arguments = {"time": datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')}
-    return arguments
+            lh.logError(e)
 
 
 def matchYoutube(clipboard):
     website = YOUTUBE
     url = "https://www.youtube.com/watch?v="
-    logd("matching {0}".format(website))
+    lh.logd("matching {0}".format(website))
     player = config[YOUTUBE]["player"]
     regEx = "(http)(s?)(:\/\/)(www\.)?(youtube\.com\/watch\?v\=)(.*)"
     return Player(player, clipboard, website, url, regEx).Play()
@@ -151,7 +110,7 @@ def matchYoutube(clipboard):
 def matchTwitch(clipboard):
     website = TWITCH
     url = "https://www.twitch.tv/"
-    logd("matching {0}".format(website))
+    lh.logd("matching {0}".format(website))
     player = config[TWITCH]["player"]
     regEx = "(http)(s?)(:\/\/)(www\.)?(twitch\.tv\/)(.*)"
     return Player(player, clipboard, website, url, regEx).Play()
@@ -160,7 +119,7 @@ def matchTwitch(clipboard):
 def matchClipboard(clipboard):
     if not matchYoutube(clipboard):
         if not matchTwitch(clipboard):
-            logd("nothing matched")
+            lh.logd("nothing matched")
             return False  # Nothing matches
     return True  # Something matched
 
@@ -174,7 +133,7 @@ def main():
             time.sleep(1)
             clipboard, lastClipboard = GetClipboard(clipboard, lastClipboard)
             if lastClipboard != clipboard:
-                logChange(lastClipboard, clipboard)
+                lh.logChange(lastClipboard, clipboard)
                 matchClipboard(clipboard)
             lastClipboard = clipboard
         except KeyboardInterrupt:
