@@ -86,7 +86,7 @@ class Player:
         logd("{0} didn't match".format(self.website))
         return False
 
-    def runPlayer(arguments):
+    def runPlayer(self, arguments):
         try:
             logStart()
             logVideo(arguments[1])
