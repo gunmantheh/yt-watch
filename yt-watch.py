@@ -59,12 +59,12 @@ if config[MAIN] and config[MAIN][LOGTOFILE] and config[MAIN][LOGTOFILE].lower() 
 lh = LogHelper(logger)
 
 class Player:
-    def __init__(self, player, clipboard):
+    def __init__(self, player, clipboard, website, url, regEx):
         self.player = player
         self.clipboard = clipboard
-        self.website = ""
-        self.url = ""
-        self.regEx = ""
+        self.website = website
+        self.url = url
+        self.regEx = regEx
 
     def Play(self):
         if not self.player:
@@ -103,18 +103,17 @@ class Player:
 
 class youtube(Player):
     def __init__(self, player, clipboard):
-        Player.__init__(self, player, clipboard)
         self.website = YOUTUBE
         self.url = "https://www.youtube.com/watch?v="
         self.regEx = "(http)(s?)(:\/\/)(www\.)?(youtube\.com\/watch\?v\=)(.*)"
+        Player.__init__(self, player, clipboard, self.website, self.url, self.regEx)
 
 class twitch(Player):
     def __init__(self, player, clipboard):
-        Player.__init__(self, player, clipboard)
         self.website = TWITCH
         self.url = "https://www.twitch.tv/"
         self.regEx = "(http)(s?)(:\/\/)(www\.)?(twitch\.tv\/)(.*)"
-
+        Player.__init__(self, player, clipboard, self.website, self.url, self.regEx)
 
 def matchYoutube(clipboard):
     lh.logd("matching {0}".format(YOUTUBE))
