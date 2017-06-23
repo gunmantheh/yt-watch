@@ -1,3 +1,7 @@
+"""
+Created by Pavel Polák
+"""
+
 import configparser
 import logging
 import re
@@ -55,12 +59,12 @@ if config[MAIN] and config[MAIN][LOGTOFILE] and config[MAIN][LOGTOFILE].lower() 
 lh = LogHelper(logger)
 
 class Player:
-    def __init__(self, player, clipboard, website, url, regEx):
+    def __init__(self, player, clipboard):
         self.player = player
         self.clipboard = clipboard
-        self.website = website
-        self.url = url
-        self.regEx = regEx
+        self.website = ""
+        self.url = ""
+        self.regEx = ""
 
     def Play(self):
         if not self.player:
@@ -97,23 +101,31 @@ class Player:
         except Exception as e:
             lh.logError(e)
 
+class youtube(Player):
+    def __init__(self, player, clipboard):
+        Player.__init__(self, player, clipboard)
+        self.website = YOUTUBE
+        self.url = "https://www.youtube.com/watch?v="
+        self.regEx = "(http)(s?)(:\/\/)(www\.)?(youtube\.com\/watch\?v\=)(.*)"
+
+class twitch(Player):
+    def __init__(self, player, clipboard):
+        Player.__init__(self, player, clipboard)
+        self.website = TWITCH
+        self.url = "https://www.twitch.tv/"
+        self.regEx = "(http)(s?)(:\/\/)(www\.)?(twitch\.tv\/)(.*)"
+
 
 def matchYoutube(clipboard):
-    website = YOUTUBE
-    url = "https://www.youtube.com/watch?v="
-    lh.logd("matching {0}".format(website))
+    lh.logd("matching {0}".format(YOUTUBE))
     player = config[YOUTUBE]["player"]
-    regEx = "(http)(s?)(:\/\/)(www\.)?(youtube\.com\/watch\?v\=)(.*)"
-    return Player(player, clipboard, website, url, regEx).Play()
+    return youtube(player, clipboard).Play()
 
 
 def matchTwitch(clipboard):
-    website = TWITCH
-    url = "https://www.twitch.tv/"
-    lh.logd("matching {0}".format(website))
+    lh.logd("matching {0}".format(TWITCH))
     player = config[TWITCH]["player"]
-    regEx = "(http)(s?)(:\/\/)(www\.)?(twitch\.tv\/)(.*)"
-    return Player(player, clipboard, website, url, regEx).Play()
+    return twitch(player, clipboard).Play()
 
 
 def matchClipboard(clipboard):
