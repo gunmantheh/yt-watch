@@ -111,7 +111,7 @@ def matchYoutube(clipboard):
     url = "https://www.youtube.com/watch?v="
     logd("matching {0}".format(website))
     player = config[YOUTUBE]["player"]
-    regEx = "(http)(s?)(:\/\/)(www\.)?(youtube\.com\/watch\?v\=)(.*)"
+    regEx = "(http)?(s?)(:\/\/)?(www\.)?(youtube\.com\/watch\?v\=)(.*)"
     return Player(player, clipboard, website, url, regEx).Play()
 
 def matchTwitch(clipboard):
@@ -119,7 +119,7 @@ def matchTwitch(clipboard):
     url = "https://www.twitch.tv/"
     logd("matching {0}".format(website))
     player = config[TWITCH]["player"]
-    regEx = "(http)(s?)(:\/\/)(www\.)?(twitch\.tv\/)(.*)"
+    regEx = "(http)?(s?)(:\/\/)?(www\.)?(twitch\.tv\/)(.*)"
     return Player(player, clipboard, website, url, regEx).Play()
 
 
