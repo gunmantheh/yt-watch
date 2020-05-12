@@ -4,7 +4,7 @@ import datetime
 import re
 import subprocess
 import time
-import win32clipboard
+import pyperclip as clp # install using "pip install pyperclip"
 import logging
 
 LIVESTREAMER = "livestreamer"
@@ -68,19 +68,15 @@ class Player():
             videoId = match.group(6)
             if videoId is not None:
                 logd("{0} matched".format(self.website))
+                finalUrl = self.url + videoId
                 if self.player == MPV:
                     logd("starting {0} via {1}".format(self.website, self.player))
-                    Thread(target=runPlayer, args=(([config[MPV]["bin"],
-                                                     self.url + videoId,
-                                                     config[MPV]["quality"]]),)).start()
+                    Thread(target=runPlayer, args=(([config[MPV]["bin"], finalUrl, config[MPV]["quality"]]),)).start()
                     return True
                 else:
                     if self.player == LIVESTREAMER:
                         logd("starting {0} via {1}".format(self.website, self.player))
-                        Thread(target=runPlayer, args=(([config[LIVESTREAMER]["bin"],
-                                                         self.url + videoId,
-                                                         config[LIVESTREAMER]["quality"],
-                                                         "-p " + config[LIVESTREAMER]["player"]]),)).start()
+                        Thread(target=runPlayer, args=(([config[LIVESTREAMER]["bin"], finalUrl, config[LIVESTREAMER]["quality"], "-p " + config[LIVESTREAMER]["player"]]),)).start()
                         return True
         logd("{0} didn't match".format(self.website))
         return False
@@ -173,13 +169,11 @@ def main():
 
 
 def GetClipboard(clipboard, lastURL):
-    win32clipboard.OpenClipboard()
     try:
-        clipboard = win32clipboard.GetClipboardData()
+        clipboard = clp.paste()
     except TypeError:
         clipboard = "invalidData"
         lastURL = clipboard
-    win32clipboard.CloseClipboard()
     return clipboard, lastURL
 
 
